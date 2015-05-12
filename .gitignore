@@ -1,0 +1,5 @@
+DotNetK70Controller.opensdf
+DotNetK70Controller.sdf
+*.tlog
+DotNetK70Controller/Debug/vc120.idb
+*.ipch
