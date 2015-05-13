@@ -7,5 +7,5 @@ function main()
 	end
 
 	Update()
-	Sleep(25)
+	Sleep(500)
 end

@@ -4,7 +4,7 @@
 #include<lua.hpp>
 #include"Device.h"
 
-//Made global for now so LuaSetLed can access
+//Made global for now so LuaSetLed etc can access
 Device* Keyboard;
 
 //Change so lua passes the led matrix instead of setting LEDs like this

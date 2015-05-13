@@ -3,6 +3,7 @@
 #include<ctime>
 #include<list>
 #include<conio.h>
+#include<fstream>
 
 #include<lua.hpp>
 
@@ -23,6 +24,12 @@ std::string GetTime()
 	return oss.str();
 }
 
+bool FileExist(const char *fileName)
+{
+	std::ifstream infile(fileName);
+	return infile.good();
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//Setup lua state for loading scripts
@@ -40,18 +47,31 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::cout << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl;
 		while (!Done) // main menu
 		{
-			std::cout << "> ";
-			std::string In = "";
-			std::cin >> In;
+			bool FileDone = false;
+			while (!FileDone)
+			{
+				std::cout << "> ";
+				std::string In = "";
+				std::cin >> In;
 
-			if (In != "exit")
-			{
-				std::string filename = "lua/" + In + ".lua";
-				luaL_dofile(L, filename.c_str());
-			}
-			else
-			{
-				Done = true;
+				if (In != "exit")
+				{
+					std::string filename = "lua/" + In + ".lua";
+					if (FileExist(filename.c_str()))
+					{
+						luaL_dofile(L, filename.c_str());
+						FileDone = true;
+					}
+					else
+					{
+						std::cout << "File doesnt exist!" << std::endl;
+					}
+				}
+				else
+				{
+					Done = true;
+					FileDone = true;
+				}
 			}
 
 			if (!Done)
