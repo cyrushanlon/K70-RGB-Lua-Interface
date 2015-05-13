@@ -73,8 +73,13 @@ void RunMain(lua_State* L)
 {
 	lua_getglobal(L, "main");
 
-	lua_call(L, 0, 1);
+	int Error = lua_pcall(L, 0, 1, 0);
+	if (Error != 0)
+	{
+		std::cout << lua_tostring(L, -1) << std::endl;
+	}
 	lua_pop(L, 1);
+
 }
 
 void LuaSetup(lua_State* L)

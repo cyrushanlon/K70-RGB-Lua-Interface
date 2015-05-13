@@ -86,6 +86,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					if (_kbhit())
 					{
 						ScriptDone = true;
+						lua_settop(L, 0);
 					}
 				}
 			}

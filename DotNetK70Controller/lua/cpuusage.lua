@@ -6,7 +6,7 @@ function main()
 
 	for x = 0, 92, 4 do -- Set Background colour
 		for y = 1, 6, 1 do
-			SetLed( x, y, 1 7, 7 )
+			SetLed( x, y, 1, 7, 7 )
 		end
 	end
 
