@@ -1,6 +1,8 @@
 #pragma once
 #include "stdafx.h"
 
+#include <pdh.h>
+
 #include<lua.hpp>
 #include"Device.h"
 
@@ -35,6 +37,36 @@ static int LuaSleep(lua_State* L)
 	return 1;
 }
 
+//Get CPU usage and give it to lua
+static PDH_HQUERY CPUQuery;
+static PDH_HCOUNTER CPUTotal;
+
+
+void CPUInit()
+{
+	PdhOpenQuery(NULL, NULL, &CPUQuery);
+	PdhAddEnglishCounter(CPUQuery, L"\\Processor(_Total)\\% Processor Time", NULL, &CPUTotal);
+	PdhCollectQueryData(CPUQuery);
+}
+
+
+double GetCPUUsage(){
+	PDH_FMT_COUNTERVALUE counterVal;
+
+
+	PdhCollectQueryData(CPUQuery);
+	PdhGetFormattedCounterValue(CPUTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
+	return counterVal.doubleValue;
+}
+
+//Lua can set current CPU usage with this
+static int LuaGetCPUUsage(lua_State* L)
+{
+	lua_pushnumber(L, GetCPUUsage());
+	return 1;
+}
+//
+
 //C++ can choose when to call the lua function "main"
 //This might be slow ill have to see
 void RunMain(lua_State* L)
@@ -49,7 +81,9 @@ void LuaSetup(lua_State* L)
 {
 	luaL_openlibs(L);
 
+	CPUInit();
 	lua_register(L, "SetLed", LuaSetLed); // Registers SetLed in lua to call LuaSetLed in c++
 	lua_register(L, "Update", LuaUpdateKeyboard);
 	lua_register(L, "Sleep", LuaSleep);
+	lua_register(L, "GetCPUUsage", LuaGetCPUUsage);
 }

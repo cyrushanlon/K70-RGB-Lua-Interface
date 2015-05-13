@@ -90,9 +90,6 @@ int _tmain(int argc, _TCHAR* argv[])
 				}
 			}
 		}
-
-		std::cout << GetTime() << "Closing Thread." << std::endl;
-
 	}
 	else // if its not found just end the program
 	{
@@ -104,7 +101,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	lua_close(L);
 
-	std::cout << GetTime() << "Keyboard pointer deleted.";
+	std::cout << GetTime() << "Keyboard pointer deleted." << std::endl << "lua state closed.";
 
 	Sleep(1000);
 	return 0;
