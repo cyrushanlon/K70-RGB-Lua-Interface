@@ -165,7 +165,7 @@ void Device::SendUSBMsg(char * data_pkt)
 	int c = HidD_SetFeature(DeviceHandle, usb_pkt, 65);
 	if (c != 1)
 	{
-		std::cout << "Device lost!" << std::endl;
+		std::cout << "Device lost!" << std::endl; // some kind of error should be called here
 	}
 	Sleep(1);
 }
@@ -189,8 +189,6 @@ bool Device::SetLed(int x, int y, int r, int g, int b)
 	if (g > 7) g = 7;
 	if (b > 7) b = 7;
 
-	//std::cout << " " << r << " " << g << " " << b << " " << std::endl;
-
 	r = 7 - r;
 	g = 7 - g;
 	b = 7 - b;
@@ -203,24 +201,16 @@ bool Device::SetLed(int x, int y, int r, int g, int b)
 
 bool Device::InitKeyboard()
 {
-	std::cout << "Searching for Corsair K70 RGB keyboard..." << std::endl;
-
 	DeviceHandle = GetDeviceHandle(0x1B1C, 0x1B13, 0x3);
 
 	if (DeviceHandle == NULL)
 	{
-		std::cout << "Searching for Corsair K95 RGB keyboard..." << std::endl;
 		DeviceHandle = GetDeviceHandle(0x1B1C, 0x1B11, 0x3);
 	}
 
 	if (DeviceHandle == NULL)
 	{
-		std::cout << "Corsair K70 RGB keyboard not detected :(" << std::endl;
 		return false;
-	}
-	else
-	{
-		std::cout << "Corsair K70 RGB keyboard detected successfully :)" << std::endl;
 	}
 
 	// Construct XY lookup table
@@ -254,7 +244,6 @@ bool Device::InitKeyboard()
 
 		if (KeyVec.at(KeyPosition++) != 255 || SizeVec.at(SizePosition++) != 0) // if the row isnt terminated with a size of 0 or the key val 255
 		{
-			std::cout << "Bad line: " << y << std::endl;
 			return false;
 		}
 	}
