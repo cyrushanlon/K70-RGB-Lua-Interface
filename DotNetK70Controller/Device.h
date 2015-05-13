@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <thread>
 
 class Device
 {
@@ -23,6 +24,10 @@ private:
 
 	void SendUSBMsg(char * data_pkt);
 	void UpdateDevice();
+
+	std::thread RunThread;
+	bool StopRun;
+	void RunFunction();
 public:
 	bool InitKeyboard();
 	void Run();

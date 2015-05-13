@@ -5,10 +5,11 @@
 #include <cfgmgr32.h>
 #include <Setupapi.h>
 #include <functional>
-#include <vector>
+
 
 Device::Device()
 {
+	StopRun = false;
 	// just assigns the UK layout for now
 	
 	KeyVec = {
@@ -35,10 +36,12 @@ Device::Device()
 
 Device::~Device()
 {
+	StopRun = true;
+	RunThread.join();
 	CloseHandle(DeviceHandle); // Make sure we drop the handle
 }
 
-void Device::Run()
+void Device::RunFunction()
 {
 	// init variables for the display
 	int r = 0;
@@ -48,7 +51,7 @@ void Device::Run()
 	int x = 1;
 	int xInc = 3;
 
-	while (true)
+	while (!StopRun)
 	{
 		x += xInc;
 		if ((x < 0) || (x > 92)) xInc *= -1;
@@ -75,6 +78,12 @@ void Device::Run()
 		// Sends new positions to keyboard
 		UpdateDevice();
 	}
+}
+
+void Device::Run()
+{
+	//Put RunFunction in another thread so user input can continue!
+	RunThread = std::thread(&Device::RunFunction, this);
 }
 
 void Device::UpdateDevice()
@@ -180,7 +189,7 @@ bool Device::SetLed(int x, int y, int r, int g, int b)
 	if (g > 7) g = 7;
 	if (b > 7) b = 7;
 
-	std::cout << " " << r << " " << g << " " << b << " " << std::endl;
+	//std::cout << " " << r << " " << g << " " << b << " " << std::endl;
 
 	r = 7 - r;
 	g = 7 - g;

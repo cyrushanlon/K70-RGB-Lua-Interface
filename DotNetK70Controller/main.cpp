@@ -42,7 +42,23 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (Keyboard->InitKeyboard()) // Check that it is found
 		{
 			std::cout << GetTime() << " Keyboard Initialised." << std::endl;
+
 			Keyboard->Run();
+
+			bool Done = false;
+			std::string In;
+			while (!Done)
+			{
+				std::cout << "Type exit to exit: ";
+				std::cin >> In;
+
+				if (In == "exit")
+				{
+					Done = true;
+				}
+			}
+
+			std::cout << GetTime() << " Closing Thread." << std::endl;
 		}
 		else // if its not found just end the program
 		{
