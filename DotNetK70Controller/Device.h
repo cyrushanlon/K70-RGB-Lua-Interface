@@ -2,6 +2,8 @@
 #include <vector>
 #include <thread>
 
+#include <lua.hpp>
+
 class Device
 {
 private:
@@ -20,7 +22,6 @@ private:
 	
 	HANDLE GetDeviceHandle(unsigned int uiVID, unsigned int uiPID, unsigned int uiMI);
 	bool IsMatchingDevice(wchar_t *pDeviceID, unsigned int uiVID, unsigned int uiPID, unsigned int uiMI);
-	bool SetLed(int x, int y, int r, int g, int b);
 
 	void SendUSBMsg(char * data_pkt);
 	void UpdateDevice();
@@ -28,7 +29,9 @@ private:
 	std::thread RunThread;
 	bool StopRun;
 	void RunFunction();
+
 public:
+	int SetLed(int x, int y, int r, int g, int b);
 	bool InitKeyboard();
 	void Run();
 	//bool GetMouse(); //look into mouse later

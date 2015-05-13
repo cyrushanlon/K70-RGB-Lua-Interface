@@ -41,19 +41,25 @@ Device::~Device()
 	CloseHandle(DeviceHandle); // Make sure we drop the handle
 }
 
-void Device::RunFunction()
+// void Device::ChangeScript
+//		Load in script
+//		if valid
+//			Close current running thread
+//			Open new thread
+
+void Device::RunFunction() // make this lua based stuff
 {
 	// init variables for the display
-	int r = 0;
+	/*int r = 0;
 	int g = 7;
 	int b = 0;
 
 	int x = 1;
-	int xInc = 3;
+	int xInc = 3;*/
 
 	while (!StopRun)
 	{
-		x += xInc;
+		/*x += xInc;
 		if ((x < 0) || (x > 92)) xInc *= -1;
 
 		for (int i = 0; i < 7; i++)
@@ -74,7 +80,7 @@ void Device::RunFunction()
 		}
 
 		Sleep(25);
-
+		*/
 		// Sends new positions to keyboard
 		UpdateDevice();
 	}
@@ -170,7 +176,7 @@ void Device::SendUSBMsg(char * data_pkt)
 	Sleep(1);
 }
 
-bool Device::SetLed(int x, int y, int r, int g, int b)
+int Device::SetLed(int x, int y, int r, int g, int b)
 {
 	if (x < 0) x = 0;
 	else if (x > 91) x = 91;
