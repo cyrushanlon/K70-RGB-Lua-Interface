@@ -10,7 +10,8 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <windows.h>
-
+#include <iostream>
+#include <sstream>
 
 
 // TODO: reference additional headers your program requires here
