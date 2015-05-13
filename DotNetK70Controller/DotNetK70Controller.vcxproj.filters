@@ -24,7 +24,7 @@
     <ClInclude Include="Device.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="luawrapper.hpp">
+    <ClInclude Include="LuaSetup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

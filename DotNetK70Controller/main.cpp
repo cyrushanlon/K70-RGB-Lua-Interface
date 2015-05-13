@@ -2,10 +2,12 @@
 
 #include<ctime>
 #include<list>
+#include<conio.h>
 
 #include<lua.hpp>
 
 #include "Device.h"
+#include "LuaSetup.h"
 
 std::string GetTime()
 {
@@ -21,93 +23,68 @@ std::string GetTime()
 	return oss.str();
 }
 
-BOOL CtrlHandler(DWORD fdwCtrlType)
-{
-	switch (fdwCtrlType)
-	{
-		// CTRL-CLOSE: confirm that the user wants to exit.
-	case CTRL_CLOSE_EVENT: // somehow call destructor of the objects from here
-		return(TRUE);
-
-	default:
-		return FALSE;
-	}
-}
-
-//Made global for now so LuaSetLed can access
-Device* Keyboard;
-
-//Change so lua passes the led matrix instead of setting LEDs like this
-static int LuaSetLed(lua_State *L) // need and x, y, r, g and b integer passed in
-{
-	int n = lua_gettop(L);
-	if (n > 5) n = 5;
-	std::vector<int> Args;
-	for (int i = 1; i <= n; i++)
-	{
-		Args.push_back(lua_tonumber(L, i));
-	}
-	Keyboard->SetLed(Args.at(0), Args.at(1), Args.at(2), Args.at(3), Args.at(4));
-	return 1;
-}
-
 int _tmain(int argc, _TCHAR* argv[])
 {
-	if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE)) // setup control handler to look for events
+	//Setup lua state for loading scripts
+	lua_State *L = luaL_newstate();;
+	LuaSetup(L);
+
+	Keyboard = new Device(); // convert to smart pointer?
+
+	std::cout << GetTime() << "Looking for Corsair RGB K70/K95..." << std::endl;
+	if (Keyboard->InitKeyboard()) // Check that it is found
 	{
-		//Setup lua state for loading scripts
-		lua_State *L;
-		L = luaL_newstate();
+		std::cout << GetTime() << "Keyboard Initialised." << std::endl;
 
-		luaL_openlibs(L);
-
-		lua_register(L, "SetLed" ,LuaSetLed); // Registers SetLed in lua to call LuaSetLed in c++
-
-		Keyboard = new Device(); // convert to smart pointer?
-
-		std::cout << GetTime() << "Looking for Corsair RGB K70/K95..." << std::endl;
-		if (Keyboard->InitKeyboard()) // Check that it is found
+		bool Done = false;
+		std::cout << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl;
+		while (!Done) // main menu
 		{
-			luaL_dofile(L, "lua/hello.lua");// changes tilde to red!
+			std::cout << "> ";
+			std::string In = "";
+			std::cin >> In;
 
-			std::cout << GetTime() << "Keyboard Initialised." << std::endl;
-
-			std::cout << GetTime() << "Lua connection established." << std::endl;
-
-			Keyboard->Run();
-
-			bool Done = false;
-			std::string In;
-			while (!Done)
+			if (In != "exit")
 			{
-				std::cout << GetTime() << "Type exit to exit: ";
-				std::cin >> In;
-
-				if (In == "exit")
-				{
-					Done = true;
-				}
+				std::string filename = "lua/" + In + ".lua";
+				luaL_dofile(L, filename.c_str());
+			}
+			else
+			{
+				Done = true;
 			}
 
-			std::cout << GetTime() << "Closing Thread." << std::endl;
+			if (!Done)
+			{
+				std::cout << GetTime() << "Hit any key to close script. " <<std::endl;
+				bool ScriptDone = false;
+				std::string In;
+				while (!ScriptDone) //Script loop
+				{
+					RunMain(L); // runs the lua file main function;
+
+					if (_kbhit())
+					{
+						ScriptDone = true;
+					}
+				}
+			}
 		}
-		else // if its not found just end the program
-		{
-			std::cout << GetTime() << "Corsair K70 RGB keyboard not detected :(" << std::endl;
-		}
 
-		delete Keyboard;
-		Keyboard = NULL;
+		std::cout << GetTime() << "Closing Thread." << std::endl;
 
-		lua_close(L);
-
-		std::cout << GetTime() << "Keyboard pointer deleted.";
 	}
-	else // if the control handler cant get setup
+	else // if its not found just end the program
 	{
-		std::cout << GetTime() << "ERROR: Could not set control handler" << std::endl;
-		return 1;
+		std::cout << GetTime() << "Corsair K70 RGB keyboard not detected :(" << std::endl;
 	}
+
+	delete Keyboard;
+	Keyboard = NULL;
+
+	lua_close(L);
+
+	std::cout << GetTime() << "Keyboard pointer deleted.";
 
 	Sleep(1000);
 	return 0;

@@ -24,7 +24,6 @@ private:
 	bool IsMatchingDevice(wchar_t *pDeviceID, unsigned int uiVID, unsigned int uiPID, unsigned int uiMI);
 
 	void SendUSBMsg(char * data_pkt);
-	void UpdateDevice();
 
 	std::thread RunThread;
 	bool StopRun;
@@ -32,10 +31,10 @@ private:
 
 public:
 	int SetLed(int x, int y, int r, int g, int b);
+	void UpdateDevice();
 	bool InitKeyboard();
 	void Run();
 	//bool GetMouse(); //look into mouse later
 	Device();
 	~Device();
 };
-

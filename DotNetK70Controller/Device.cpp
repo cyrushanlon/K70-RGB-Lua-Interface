@@ -6,7 +6,6 @@
 #include <Setupapi.h>
 #include <functional>
 
-
 Device::Device()
 {
 	StopRun = false;
@@ -37,59 +36,8 @@ Device::Device()
 Device::~Device()
 {
 	StopRun = true;
-	RunThread.join();
+	//RunThread.join();
 	CloseHandle(DeviceHandle); // Make sure we drop the handle
-}
-
-// void Device::ChangeScript
-//		Load in script
-//		if valid
-//			Close current running thread
-//			Open new thread
-
-void Device::RunFunction() // make this lua based stuff
-{
-	// init variables for the display
-	/*int r = 0;
-	int g = 7;
-	int b = 0;
-
-	int x = 1;
-	int xInc = 3;*/
-
-	while (!StopRun)
-	{
-		/*x += xInc;
-		if ((x < 0) || (x > 92)) xInc *= -1;
-
-		for (int i = 0; i < 7; i++)
-		{
-			SetLed(x, i, r, g, b);
-		}
-
-		int Newx = x;
-
-		if (xInc < 0)
-			Newx = Newx - 4;
-		else
-			Newx = Newx + 4;
-
-		for (int i = 0; i < 7; i++)
-		{
-			SetLed(Newx, i, 7, 0, 0);
-		}
-
-		Sleep(25);
-		*/
-		// Sends new positions to keyboard
-		UpdateDevice();
-	}
-}
-
-void Device::Run()
-{
-	//Put RunFunction in another thread so user input can continue!
-	RunThread = std::thread(&Device::RunFunction, this);
 }
 
 void Device::UpdateDevice()
