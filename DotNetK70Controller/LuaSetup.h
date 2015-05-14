@@ -12,14 +12,24 @@ Device* Keyboard;
 //Change so lua passes the led matrix instead of setting LEDs like this
 static int LuaSetLed(lua_State *L) // need and x, y, r, g and b integer passed in
 {
-	int n = lua_gettop(L);
-	if (n > 5) n = 5;
 	std::vector<int> Args;
-	for (int i = 1; i <= n; i++)
-	{
+	std::string KeyStr;
+	int n = lua_gettop(L);
+
+	for (int i = 2; i <= n; i++) // these are numbers
 		Args.push_back(lua_tonumber(L, i));
+
+	if (n > 5) n = 5;
+	if (n == 4) // first is a string
+	{
+		
+		Keyboard->SetLed(lua_tostring(L, 1), Args.at(0), Args.at(1), Args.at(2));
 	}
-	Keyboard->SetLed(Args.at(0), Args.at(1), Args.at(2), Args.at(3), Args.at(4));
+	else
+	{
+		Keyboard->SetLed(lua_tonumber(L, 1), Args.at(0), Args.at(1), Args.at(2), Args.at(3));
+	}
+	
 	return 1;
 }
 

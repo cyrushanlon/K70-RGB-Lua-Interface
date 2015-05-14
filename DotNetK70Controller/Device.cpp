@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "Device.h"
+#include "KeyCoordinates.h"
+
 #include <hidsdi.h>
 
 #include <cfgmgr32.h>
@@ -150,6 +152,24 @@ int Device::SetLed(int x, int y, int r, int g, int b)
 	grn_val[led] = g;
 	blu_val[led] = b;
 	return true;
+}
+
+int Device::SetLed(std::string Key, int r, int g, int b)
+{
+	std::pair<int, int> CurPair;
+	if (KeynumMap.count(Key) > 0) // checks if its a valid key
+	{
+		CurPair = KeynumMap[Key];
+	}
+	else
+	{
+		return false;
+	}
+
+	int x = CurPair.first;
+	int y = CurPair.second;
+
+	SetLed(x, y, r, g, b);
 }
 
 bool Device::InitKeyboard()

@@ -11,26 +11,26 @@ local Ticks = 0
 local SleepDuration = 50
 
 --Number of ticks until the board makes a full hue cycle
-local TicksPerCycle = 20
+local TicksPerCycle = 40
 
 --Number of full RGB fades that exist on the keyboard at any given time. Can have decimals.
-local NumRGB = 1
+local NumRGB = 2
 
 --Direction of movement
 local Reverse = false
 --Vertical slope
 --6/92 gives about 1 xkey per ykey, 0 is vertical, negative for other direction
-local Slope = 6/92
+local Slope = 0.1
 
 --Vary slope over time for extra woop. 
 --Make sure to set a slope, as this will be the maximum slope it varies to.
-local SlinkySlopeEnabled = false
-local SlinkySlopeTicks = 60
+local SlinkySlopeEnabled = true
+local SlinkySlopeTicks = 40
 
 --Vary NumRGB over time for double extra woop. 
 --Make sure to have a NumRGB greater than 1, as this will be the maximum it varies to.
 local SlinkyFadeEnabled = false
-local SlinkyFadeTicks = 150
+local SlinkyFadeTicks = 60
 
 function main()
         --Precalculate the slope we use this tick
