@@ -82,8 +82,24 @@ static int LuaGetCPUUsage(lua_State* L)
 bool RunMain(lua_State* L)
 {
 	lua_getglobal(L, "main");
+	if (lua_isfunction(L, lua_gettop(L)))
+	{
+		if (lua_pcall(L, 0, 1, 0) != 0)
+		{
+			std::cout << lua_tostring(L, -1) << std::endl;
+			return false;
+		}
+		lua_pop(L, 1);
+		return true;
+	}
+	return false;
+}
 
-	if (lua_pcall(L, 0, 1, 0) != 0)
+bool RunKeyPress(lua_State* L, std::string Key)
+{
+	lua_getglobal(L, "keypress");
+	lua_pushstring(L, Key.c_str()); // push first parameter
+	if (lua_pcall(L, 1, 1, 0) != 0)
 	{
 		std::cout << lua_tostring(L, -1) << std::endl;
 		return false;
