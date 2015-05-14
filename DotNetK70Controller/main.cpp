@@ -59,8 +59,15 @@ int _tmain(int argc, _TCHAR* argv[])
 					std::string filename = "lua/" + In + ".lua";
 					if (FileExist(filename.c_str()))
 					{
-						luaL_dofile(L, filename.c_str());
-						FileDone = true;
+						lua_settop(L, 0);
+						if (luaL_dofile(L, filename.c_str()) != 0)
+						{
+							std::cout << lua_tostring(L, -1) << std::endl;
+						}
+						else
+						{
+							FileDone = true;
+						}	
 					}
 					else
 					{
@@ -77,18 +84,8 @@ int _tmain(int argc, _TCHAR* argv[])
 			if (!Done)
 			{
 				std::cout << GetTime() << "Hit any key to close script. " <<std::endl;
-				bool ScriptDone = false;
-				std::string In;
-				while (!ScriptDone) //Script loop
-				{
-					RunMain(L); // runs the lua file main function;
 
-					if (_kbhit())
-					{
-						ScriptDone = true;
-						lua_settop(L, 0);
-					}
-				}
+				while (!(_kbhit() || !RunMain(L))){} //Script loop
 			}
 		}
 	}

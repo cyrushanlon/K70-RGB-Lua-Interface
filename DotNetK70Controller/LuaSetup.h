@@ -69,16 +69,17 @@ static int LuaGetCPUUsage(lua_State* L)
 
 //C++ can choose when to call the lua function "main"
 //This might be slow ill have to see
-void RunMain(lua_State* L)
+bool RunMain(lua_State* L)
 {
 	lua_getglobal(L, "main");
 
-	int Error = lua_pcall(L, 0, 1, 0);
-	if (Error != 0)
+	if (lua_pcall(L, 0, 1, 0) != 0)
 	{
 		std::cout << lua_tostring(L, -1) << std::endl;
+		return false;
 	}
 	lua_pop(L, 1);
+	return true;
 
 }
 
