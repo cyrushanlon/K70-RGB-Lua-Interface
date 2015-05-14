@@ -30,7 +30,6 @@ Device::Device()
 		1.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, -1.5, 1, -1.5, 1, 1, 1, 1, 0,
 		1.5, 1, 1.25, 6.5, 1.25, 1, 1, 1.5, -.5, 1, 1, 1, -.5, 2, 1, 1, 0,
 	};
-	
 }
 
 Device::~Device()
@@ -155,11 +154,11 @@ int Device::SetLed(int x, int y, int r, int g, int b)
 
 bool Device::InitKeyboard()
 {
-	DeviceHandle = GetDeviceHandle(0x1B1C, 0x1B13, 0x3);
+	DeviceHandle = GetDeviceHandle(0x1B1C, 0x1B13, 0x3); // get k70 rgb
 
 	if (DeviceHandle == NULL)
 	{
-		DeviceHandle = GetDeviceHandle(0x1B1C, 0x1B11, 0x3);
+		DeviceHandle = GetDeviceHandle(0x1B1C, 0x1B11, 0x3); //get k95 rgb (not fully supported as I cant test with it)
 	}
 
 	if (DeviceHandle == NULL)
