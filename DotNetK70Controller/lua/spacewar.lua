@@ -17,6 +17,8 @@ local ents = {}
 local GameOver = false
 local shipA = 1
 local shipB = 2
+local cooldownA = 0
+local cooldownB = 0
 
 --Spawn new entities
 function newEnt( type , color , x , y  )
@@ -59,9 +61,15 @@ end
 
 function Shoot( shipnr )	
 	if shipnr == 1 then
-		newEnt( "BulletA" , {7,7,0} , ents[shipnr].x+4 , ents[shipnr].y  )
+		if cooldownA < 0 then
+			newEnt( "BulletA" , {7,7,0} , ents[shipnr].x+4 , ents[shipnr].y  )
+			cooldownA = 30
+		end
 	elseif shipnr == 2 then
-		newEnt( "BulletB" , {7,0,7} , ents[shipnr].x-4 , ents[shipnr].y  )
+		if cooldownB < 0 then
+			newEnt( "BulletB" , {7,0,7} , ents[shipnr].x-4 , ents[shipnr].y  )
+			cooldownB = 30
+		end
 	end
 end
 
@@ -154,15 +162,22 @@ function main()
 	end
 	
 	--RENDERING
-
+	--Make the background black
+	for x = 0, 92, 4 do
+		for y = 0, 6, 1 do
+			SetLed( x , y , 0 , 0 , 0 )
+		end
+	end
 	--Render the entities
 	for k, v in pairs( ents ) do
 		if WithinBounds(v) then
-			SetLed( leftcol+v.x-1, toprow+v.y-1, v.color[1] , v.color[2] , v.color[3] )
+			SetLed( leftcol+v.x-1 , toprow+v.y-1 , v.color[1] , v.color[2] , v.color[3] )
 		end
 	end
 	
 	--Stuff
+	cooldownA = cooldownA - 1
+	cooldownB = cooldownB - 1
 	Tick = Tick + 1	
 	Update()
 	Sleep(SleepDuration)

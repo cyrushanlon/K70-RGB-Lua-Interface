@@ -114,7 +114,6 @@ bool RunKeyRelease(lua_State* L, int Key)
 {
 	if (lua_getglobal(L, "keyrelease") != 0)
 	{
-		std::cout << lua_gettop(L);
 		lua_pushinteger(L, Key); // push first parameter
 		if (lua_pcall(L, 1, 1, 0) != 0) // if lua error
 		{

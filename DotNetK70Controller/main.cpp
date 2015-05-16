@@ -47,7 +47,10 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		{
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:	
-			KeysDownToSend.push_back(p->vkCode);
+			if (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), p->vkCode) == KeysDownToSend.end())
+			{
+				KeysDownToSend.push_back(p->vkCode);
+			}	
 			//std::cout << "Down " << p->vkCode << std::endl;
 			break;
 		case WM_KEYUP:
@@ -68,36 +71,42 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 	{
 		Running = RunMain(L); // run main
 
-		if (KeysUpToSend.size() > 0) // run key ups
-		{
-			for (int i = 0; i < KeysUpToSend.size(); i++)
-			{
-				RunKeyRelease(L, KeysUpToSend.at(i));
-			}
-			KeysUpToSend.clear();
-		}
-
 		if (KeysDownToSend.size() > 0) // run key downs
 		{
-			if (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_LCONTROL) != KeysDownToSend.end())
+			if ((std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_LCONTROL) != KeysDownToSend.end()) &&	
+			   (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_LMENU) != KeysDownToSend.end()) &&
+			   (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_END) != KeysDownToSend.end()))
 			{
-				if (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_LMENU) != KeysDownToSend.end())
-				{
-					if (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_END) != KeysDownToSend.end())
-					{
-						Running = false;
-					}
-				}
+				Running = false;
+				break; // probs bad
 			}
 			else
 			{
 				for (int i = 0; i < KeysDownToSend.size(); i++)
 				{
 					RunKeyPress(L, KeysDownToSend.at(i));
-				}
-				KeysDownToSend.clear();
+				}		
 			}
 		}
+		
+		if (KeysUpToSend.size() > 0) // run key ups
+		{
+			for (int i = 0; i < KeysUpToSend.size(); i++)
+			{
+				RunKeyRelease(L, KeysUpToSend.at(i));
+			}
+
+		}
+
+		for (int i = 0; i < KeysUpToSend.size(); i++)
+		{
+			auto Find = std::find(KeysDownToSend.begin(), KeysDownToSend.end(), KeysUpToSend.at(i));
+			if (Find != KeysDownToSend.end())
+			{
+				KeysDownToSend.erase(Find);
+			}
+		}
+		KeysUpToSend.clear();
 	}
 
 	KeysDownToSend.clear();
@@ -119,8 +128,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::cout << GetTime() << "Keyboard Initialised." << std::endl;
 
 		bool Done = false;
-		std::cout << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl;
-
+		std::cout << std::endl << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl << std::endl;
 		while (!Done) // main menu
 		{
 			bool FileDone = false;
@@ -159,7 +167,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			if (!Done)
 			{
-				std::cout << GetTime() << "Script opening, (LControl + LAlt + End) to close." << std::endl;
+				std::cout << GetTime() << "Script opening." << std::endl;
 				
 				HHOOK hhkLowLevelKybd = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
 
@@ -168,9 +176,8 @@ int _tmain(int argc, _TCHAR* argv[])
 				std::thread LuaThread(LuaThreadLoop, L, GetCurrentThreadId());
 
 				std::cout << GetTime() << "Lua thread open." << std::endl;
-				std::cout << GetTime() << "Script running..." << std::endl;
-
-
+				std::cout << GetTime() << "Script running..." << std::endl << std::endl;
+				std::cout << GetTime() << "(LControl + LAlt + End) to end script." << std::endl;
 
 				MSG msg; // message loop to recieve key inputs
 				while (GetMessage(&msg, NULL, 0, 0) > 0)
@@ -193,16 +200,20 @@ int _tmain(int argc, _TCHAR* argv[])
 
 				std::cout << GetTime() << "Keyboard hook released" << std::endl;
 
-				std::cout << GetTime() << "Done!" << std::endl;
+				std::cout << GetTime() << "Done!" << std::endl << std::endl;
+
+				std::cin.clear();
+				std::cin.ignore(INT_MAX, '\n');
 			}
 		}
+		std::cin.clear();
+		std::cin.ignore(10000);
 	}
 	else // if its not found just end the program
 	{
 		std::cout << GetTime() << "Corsair K70 RGB keyboard not detected :(" << std::endl;
 	}
 
-		
 
 	delete Keyboard;
 	Keyboard = NULL;
