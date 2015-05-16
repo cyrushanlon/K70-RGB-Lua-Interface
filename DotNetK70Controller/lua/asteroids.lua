@@ -68,7 +68,7 @@ function moveDown()
 end
 
 --Autopilot
-local AutoPilot = false
+local AutoPilot = true
 function CheckCollision()
 	for k, v in pairs( roids ) do
 		--If we're on the same row
@@ -95,16 +95,33 @@ end
 
 
 --Keypress event
+--Arrowkeys move it and turn off autopilot
+--Control turns autopilot on
+--Space starts new game when you died
 function keypress( key )
     if key == 38 then
+		AutoPilot = false
 		moveUp()
 	elseif key == 40 then
+		AutoPilot = false
 		moveDown()
 	elseif key == 37 then
+		AutoPilot = false
 		moveBackward()
 	elseif key == 39 then
+		AutoPilot = false
 		moveForward()
+	--Control key to turn on autopilot
+	elseif key == 163 then
+		AutoPilot = true
+	--Space to restart
+	elseif Lost and key == 32 then
+		newGame()
 	end
+end
+
+function keyrelease(key)
+
 end
 
 function main()	
@@ -156,7 +173,8 @@ function main()
 			end
 		end
 		
-		if ExplosionRadius > 300 then
+		--Auto-restart if we are on AutoPilot
+		if ExplosionRadius > 250 and AutoPilot then
 			newGame()
 		end
 	else
@@ -182,7 +200,7 @@ function main()
 			end
 		end	
 		
-		--If we autopilot, do it
+		--If we AutoPilot, do it
 		if AutoPilot then
 			CheckCollision()
 		end
@@ -209,7 +227,11 @@ function main()
 		end
 		
 		--Render the ship
-		SetLed( leftcol+ShipX-1, toprow+ShipY-1, 0, 3, 7 )
+		if AutoPilot then
+			SetLed( leftcol+ShipX-1, toprow+ShipY-1, 7, 0, 3 )
+		else
+			SetLed( leftcol+ShipX-1, toprow+ShipY-1, 0, 3, 7 )
+		end
 		
 		--Render the asteroids
 		for k, v in pairs( roids ) do

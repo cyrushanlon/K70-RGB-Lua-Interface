@@ -96,30 +96,35 @@ bool RunMain(lua_State* L)
 
 bool RunKeyPress(lua_State* L, int Key)
 {
-	lua_getglobal(L, "keypress");
-	lua_pushinteger(L, Key); // push first parameter
-	if (lua_pcall(L, 1, 1, 0) != 0)
+	if (lua_getglobal(L, "keypress") != 0)
 	{
-		std::cout << lua_tostring(L, -1) << std::endl;
-		return false;
+		lua_pushinteger(L, Key); // push first parameter
+		if (lua_pcall(L, 1, 1, 0) != 0) // if lua error
+		{
+			std::cout << lua_tostring(L, -1) << std::endl;
+			return false;
+		}
+		lua_pop(L, 1);
+		return true;
 	}
-	lua_pop(L, 1);
-	return true;
-
+	return false;
 }
 
 bool RunKeyRelease(lua_State* L, int Key)
 {
-	lua_getglobal(L, "keyrelease");
-	lua_pushinteger(L, Key); // push first parameter
-	if (lua_pcall(L, 1, 1, 0) != 0)
+	if (lua_getglobal(L, "keyrelease") != 0)
 	{
-		std::cout << lua_tostring(L, -1) << std::endl;
-		return false;
+		std::cout << lua_gettop(L);
+		lua_pushinteger(L, Key); // push first parameter
+		if (lua_pcall(L, 1, 1, 0) != 0) // if lua error
+		{
+			std::cout << lua_tostring(L, -1) << std::endl;
+			return false;
+		}
+		lua_pop(L, 1);
+		return true;
 	}
-	lua_pop(L, 1);
-	return true;
-
+	return false;
 }
 
 void LuaSetup(lua_State* L)
