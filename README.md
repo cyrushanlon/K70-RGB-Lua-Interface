@@ -6,11 +6,24 @@ LED Controller for the Corsair K70 RGB that aims to allow users to create lua sc
 
 Make sure that the Corsair Utility Engine has the keyboard set to disable device lighting or the two sources will conflict and cause insane flickering.
 
-## Lua Integration
-There are example scripts in the lua folder.
-Better documentation coming soon!
-
 ### C++ functions from within lua
+There are example scripts in the lua folder.
+
+Required for looping in lua
+```
+function main() end
+```
+
+Parameter is a key code sent from C++, the keycodes can be found here:
+
+https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
+
+Please note that the values received in lua are decimal integers not hexidecimal.
+```
+function keypress(key) end
+function keyrelease(key) end
+```
+
 Used to set a specified key to a specified colour.
 ```
 x = int from 0 to 92 (Standard width key is 4 wide)
