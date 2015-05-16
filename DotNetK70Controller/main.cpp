@@ -33,6 +33,7 @@ bool FileExist(const char *fileName)
 }
 
 std::vector<int> KeysDownToSend;
+std::vector<int> KeysUpToSend;
 LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	BOOL fEatKeystroke = FALSE;
@@ -49,6 +50,7 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
+			KeysUpToSend.push_back(p->vkCode);
 			//std::cout << "Up " << p->vkCode << std::endl;
 			break;
 		}
@@ -58,19 +60,42 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 	return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
 }
 
+bool Running = false;
 void LuaThreadLoop(lua_State *L)
 {
-	bool Running = true;
+	Running = true;
 	while (Running)
 	{
-		Running = RunMain(L);
-		if (KeysDownToSend.size() > 0)
+		Running = RunMain(L); // run main
+
+		if (KeysUpToSend.size() > 0) // run key ups
 		{
-			for (int i = 0; i < KeysDownToSend.size(); i++)
+			for (int i = 0; i < KeysUpToSend.size(); i++)
 			{
-				RunKeyPress(L, KeysDownToSend.at(i));
+				RunKeyRelease(L, KeysUpToSend.at(i));
 			}
-			KeysDownToSend.clear();
+			KeysUpToSend.clear();
+			std::vector<int>().swap(KeysUpToSend); // more reliable than .clear()
+		}
+
+		if (KeysDownToSend.size() > 0) // run key downs
+		{
+			if (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_ESCAPE) != KeysDownToSend.end())
+			{
+				if (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_F1) != KeysDownToSend.end())
+				{
+					Running = false;
+				}
+			}
+			else
+			{
+				for (int i = 0; i < KeysDownToSend.size(); i++)
+				{
+					RunKeyPress(L, KeysDownToSend.at(i));
+				}
+				KeysDownToSend.clear();
+				std::vector<int>().swap(KeysDownToSend); // more reliable than .clear()
+			}
 		}
 	}
 }
@@ -129,7 +154,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			if (!Done)
 			{
-				std::cout << GetTime() << "Script Open! " << std::endl;
+				std::cout << GetTime() << "Script Open, ESC + F1 to close." << std::endl;
 				
 				HHOOK hhkLowLevelKybd = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
 				std::thread LuaThread(LuaThreadLoop,L);
@@ -141,6 +166,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					DispatchMessage(&msg);
 				}
 
+				LuaThread.join();
 				UnhookWindowsHookEx(hhkLowLevelKybd); // releases low level hook to keyboard
 				std::cout << GetTime() << "Script complete." << std::endl;
 			}

@@ -1,5 +1,3 @@
---Enables or disable auto pilot
-local AutoPilot = true
 --Time between ticks
 local SleepDuration = 25
 --SpawnDelay of new asteroids in ticks
@@ -70,7 +68,7 @@ function moveDown()
 end
 
 --Autopilot
-
+local AutoPilot = false
 function CheckCollision()
 	for k, v in pairs( roids ) do
 		--If we're on the same row
@@ -94,6 +92,20 @@ function CheckCollision()
 		end
 	end
 end 
+
+
+--Keypress event
+function keypress( key )
+    if key == 38 then
+		moveUp()
+	elseif key == 40 then
+		moveDown()
+	elseif key == 37 then
+		moveBackward()
+	elseif key == 39 then
+		moveForward()
+	end
+end
 
 function main()	
 

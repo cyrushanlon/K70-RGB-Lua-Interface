@@ -90,6 +90,6 @@ end
 
 function keypress( Key )
 	if Key == 32 then
-		Reverse = not Reverse
+		Reverse = not   Reverse
 	end
 end

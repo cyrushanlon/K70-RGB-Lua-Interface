@@ -108,6 +108,20 @@ bool RunKeyPress(lua_State* L, int Key)
 
 }
 
+bool RunKeyRelease(lua_State* L, int Key)
+{
+	lua_getglobal(L, "keyrelease");
+	lua_pushinteger(L, Key); // push first parameter
+	if (lua_pcall(L, 1, 1, 0) != 0)
+	{
+		std::cout << lua_tostring(L, -1) << std::endl;
+		return false;
+	}
+	lua_pop(L, 1);
+	return true;
+
+}
+
 void LuaSetup(lua_State* L)
 {
 	luaL_openlibs(L);
