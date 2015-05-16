@@ -31,7 +31,7 @@ private:
 
 public:
 	int SetLed(int x, int y, int r, int g, int b);
-	int SetLed(std::string, int r, int g, int b);
+	int SetLed(int n, int r, int g, int b);
 	void UpdateDevice();
 	bool InitKeyboard();
 	void Run();

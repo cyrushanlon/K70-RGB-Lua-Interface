@@ -7,8 +7,10 @@
 
 #include<lua.hpp>
 
+//#include "KeyCoordinates.h"
 #include "Device.h"
 #include "LuaSetup.h"
+
 
 std::string GetTime()
 {
@@ -30,12 +32,55 @@ bool FileExist(const char *fileName)
 	return infile.good();
 }
 
+std::vector<int> KeysDownToSend;
+LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	BOOL fEatKeystroke = FALSE;
+
+	if (nCode == HC_ACTION)
+	{
+		PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)lParam;
+		switch (wParam)
+		{
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:	
+			KeysDownToSend.push_back(p->vkCode);
+			//std::cout << "Down " << p->vkCode << std::endl;
+			break;
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			//std::cout << "Up " << p->vkCode << std::endl;
+			break;
+		}
+
+		
+	}
+	return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
+}
+
+void LuaThreadLoop(lua_State *L)
+{
+	bool Running = true;
+	while (Running)
+	{
+		Running = RunMain(L);
+		if (KeysDownToSend.size() > 0)
+		{
+			for (int i = 0; i < KeysDownToSend.size(); i++)
+			{
+				RunKeyPress(L, KeysDownToSend.at(i));
+			}
+			KeysDownToSend.clear();
+		}
+	}
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//Setup lua state for loading scripts
 	lua_State *L = luaL_newstate();;
 	LuaSetup(L);
-
+	 
 	Keyboard = new Device(); // convert to smart pointer?
 
 	std::cout << GetTime() << "Looking for Corsair RGB K70/K95..." << std::endl;
@@ -45,6 +90,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		bool Done = false;
 		std::cout << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl;
+
 		while (!Done) // main menu
 		{
 			bool FileDone = false;
@@ -67,7 +113,7 @@ int _tmain(int argc, _TCHAR* argv[])
 						else
 						{
 							FileDone = true;
-						}	
+						}
 					}
 					else
 					{
@@ -83,9 +129,20 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			if (!Done)
 			{
-				std::cout << GetTime() << "Hit any key to close script. " <<std::endl;
+				std::cout << GetTime() << "Script Open! " << std::endl;
+				
+				HHOOK hhkLowLevelKybd = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
+				std::thread LuaThread(LuaThreadLoop,L);
 
-				while (!(_kbhit() || !RunMain(L))){} //Script loop
+				MSG msg; // message loop to recieve key inputs
+				while (!GetMessage(&msg, NULL, NULL, NULL))
+				{    
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+
+				UnhookWindowsHookEx(hhkLowLevelKybd); // releases low level hook to keyboard
+				std::cout << GetTime() << "Script complete." << std::endl;
 			}
 		}
 	}
@@ -93,6 +150,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		std::cout << GetTime() << "Corsair K70 RGB keyboard not detected :(" << std::endl;
 	}
+
+		
 
 	delete Keyboard;
 	Keyboard = NULL;

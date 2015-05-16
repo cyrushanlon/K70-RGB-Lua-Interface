@@ -1,3 +1,5 @@
+--Enables or disable auto pilot
+local AutoPilot = true
 --Time between ticks
 local SleepDuration = 25
 --SpawnDelay of new asteroids in ticks
@@ -68,7 +70,7 @@ function moveDown()
 end
 
 --Autopilot
-local AutoPilot = false
+
 function CheckCollision()
 	for k, v in pairs( roids ) do
 		--If we're on the same row

@@ -1,12 +1,13 @@
 #include "stdafx.h"
 #include "Device.h"
-#include "KeyCoordinates.h"
 
 #include <hidsdi.h>
 
 #include <cfgmgr32.h>
 #include <Setupapi.h>
 #include <functional>
+
+#include "KeyCoordinates.h"
 
 Device::Device()
 {
@@ -154,7 +155,7 @@ int Device::SetLed(int x, int y, int r, int g, int b)
 	return true;
 }
 
-int Device::SetLed(std::string Key, int r, int g, int b)
+int Device::SetLed(int Key, int r, int g, int b)
 {
 	std::pair<int, int> CurPair;
 	if (KeynumMap.count(Key) > 0) // checks if its a valid key
@@ -168,7 +169,6 @@ int Device::SetLed(std::string Key, int r, int g, int b)
 
 	int x = CurPair.first;
 	int y = CurPair.second;
-
 	SetLed(x, y, r, g, b);
 }
 

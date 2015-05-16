@@ -22,8 +22,7 @@ static int LuaSetLed(lua_State *L) // need and x, y, r, g and b integer passed i
 	if (n > 5) n = 5;
 	if (n == 4) // first is a string
 	{
-		
-		Keyboard->SetLed(lua_tostring(L, 1), Args.at(0), Args.at(1), Args.at(2));
+		Keyboard->SetLed(lua_tonumber(L, 1), Args.at(0), Args.at(1), Args.at(2));
 	}
 	else
 	{
@@ -95,10 +94,10 @@ bool RunMain(lua_State* L)
 	return false;
 }
 
-bool RunKeyPress(lua_State* L, std::string Key)
+bool RunKeyPress(lua_State* L, int Key)
 {
 	lua_getglobal(L, "keypress");
-	lua_pushstring(L, Key.c_str()); // push first parameter
+	lua_pushinteger(L, Key); // push first parameter
 	if (lua_pcall(L, 1, 1, 0) != 0)
 	{
 		std::cout << lua_tostring(L, -1) << std::endl;
