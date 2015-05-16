@@ -126,6 +126,11 @@ bool RunKeyRelease(lua_State* L, int Key)
 	return false;
 }
 
+void RemoveFunctions(lua_State* L)
+{
+	luaL_dostring(L, "main = nil keypress = nil keyrelease = nil");
+}
+
 void LuaSetup(lua_State* L)
 {
 	luaL_openlibs(L);

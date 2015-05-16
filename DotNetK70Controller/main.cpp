@@ -8,6 +8,7 @@
 #include<lua.hpp>
 
 //#include "KeyCoordinates.h"
+#include "dirent.h"
 #include "Device.h"
 #include "LuaSetup.h"
 
@@ -26,6 +27,29 @@ std::string GetTime()
 	oss << "[" << localTime.tm_hour << ":" << localTime.tm_min << ":" << localTime.tm_sec << "] ";
 
 	return oss.str();
+}
+
+void FindFiles()
+{
+	DIR *dpdf;
+	struct dirent *epdf;
+
+	dpdf = opendir("lua");
+	std::cout << "Files in lua folder:" << std::endl;
+	if (dpdf != NULL)
+	{
+		int i = -2;
+		while (epdf = readdir(dpdf))
+		{
+			i++;
+			if ((i != -1) && (i != 0)) // silly 
+			{
+				std::cout << i << " : " << epdf->d_name << std::endl;
+				Sleep(50); // makes it look cool I guess
+			}
+		}
+		std::cout << std::endl;
+	}
 }
 
 bool FileExist(const char *fileName)
@@ -117,7 +141,7 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//Setup lua state for loading scripts
-	lua_State *L = luaL_newstate();;
+	lua_State *L = luaL_newstate();
 	LuaSetup(L);
 	 
 	Keyboard = new Device(); // convert to smart pointer?
@@ -134,6 +158,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			bool FileDone = false;
 			while (!FileDone)
 			{
+				FindFiles();
 				std::cout << "> ";
 				std::string In = "";
 				std::cin >> In;
@@ -144,6 +169,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					if (FileExist(filename.c_str()))
 					{
 						lua_settop(L, 0);
+						RemoveFunctions(L); // defaults any functions to nil
 						if (luaL_dofile(L, filename.c_str()) != 0)
 						{
 							std::cout << lua_tostring(L, -1) << std::endl;
@@ -201,19 +227,15 @@ int _tmain(int argc, _TCHAR* argv[])
 				std::cout << GetTime() << "Keyboard hook released" << std::endl;
 
 				std::cout << GetTime() << "Done!" << std::endl << std::endl;
-
-				std::cin.clear();
-				std::cin.ignore(INT_MAX, '\n');
 			}
+
+			FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
 		}
-		std::cin.clear();
-		std::cin.ignore(10000);
 	}
 	else // if its not found just end the program
 	{
 		std::cout << GetTime() << "Corsair K70 RGB keyboard not detected :(" << std::endl;
 	}
-
 
 	delete Keyboard;
 	Keyboard = NULL;
