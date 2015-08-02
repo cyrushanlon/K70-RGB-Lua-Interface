@@ -42,10 +42,9 @@ void FindFiles()
 		while (epdf = readdir(dpdf))
 		{
 			i++;
-			if ((i != -1) && (i != 0)) // silly 
+			if ((i != -1) && (i != 0)) // silly work around to hide . and ..
 			{
 				std::cout << i << " : " << epdf->d_name << std::endl;
-				Sleep(50); // makes it look cool I guess
 			}
 		}
 		std::cout << std::endl;
@@ -58,8 +57,11 @@ bool FileExist(const char *fileName)
 	return infile.good();
 }
 
-std::vector<int> KeysDownToSend;
+std::vector<int> KeysDown;
+std::vector<int> KeysDownSent;
+
 std::vector<int> KeysUpToSend;
+
 LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	BOOL fEatKeystroke = FALSE;
@@ -71,9 +73,9 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		{
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:	
-			if (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), p->vkCode) == KeysDownToSend.end())
+			if (std::find(KeysDown.begin(), KeysDown.end(), p->vkCode) == KeysDown.end())
 			{
-				KeysDownToSend.push_back(p->vkCode);
+				KeysDown.push_back(p->vkCode);
 			}	
 			//std::cout << "Down " << p->vkCode << std::endl;
 			break;
@@ -90,50 +92,72 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 bool Running = false;
 void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 {
+	//Only want to send changes from the last loop
+	//keysDownSent = KeysDown
+	//Loop through KeysDown to find differences, only send those
+
 	Running = true;
 	while (Running)
 	{
-		Running = RunMain(L); // run main
+		Running = RunMain(L); // run main lua
 
-		if (KeysDownToSend.size() > 0) // run key downs
+		if (KeysDown.size() > 0)
 		{
-			if ((std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_LCONTROL) != KeysDownToSend.end()) &&	
-			   (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_LMENU) != KeysDownToSend.end()) &&
-			   (std::find(KeysDownToSend.begin(), KeysDownToSend.end(), VK_END) != KeysDownToSend.end()))
+			//Escape command to leave script
+			if ((std::find(KeysDown.begin(), KeysDown.end(), VK_LCONTROL) != KeysDown.end()) &&
+				(std::find(KeysDown.begin(), KeysDown.end(), VK_LMENU) != KeysDown.end()) &&
+				(std::find(KeysDown.begin(), KeysDown.end(), VK_END) != KeysDown.end()))
 			{
 				Running = false;
 				break; // probs bad
 			}
 			else
 			{
-				for (int i = 0; i < KeysDownToSend.size(); i++)
+				//Find differences between KeysDown and KeysSent
+				for (int i = 0; i < KeysDown.size(); i++)
 				{
-					RunKeyPress(L, KeysDownToSend.at(i));
-				}		
+					//if current keysdown is in KeysDownSent
+					if (std::find(KeysDownSent.begin(), KeysDownSent.end(), KeysDown[i]) == KeysDownSent.end())
+					{
+						//Send the key
+						RunKeyPress(L, KeysDown[i]);
+					}
+				}
+
 			}
 		}
 		
+		if (KeysDown.size() > 100) // temp flush to make sure no overflow
+		{
+			KeysDown.clear();
+		}
+
+		KeysDownSent.clear();
+		KeysDownSent = KeysDown;
+		
+		
+
 		if (KeysUpToSend.size() > 0) // run key ups
 		{
 			for (int i = 0; i < KeysUpToSend.size(); i++)
 			{
 				RunKeyRelease(L, KeysUpToSend.at(i));
 			}
-
 		}
 
-		for (int i = 0; i < KeysUpToSend.size(); i++)
+		for (int i = 0; i < KeysUpToSend.size(); i++) // removes keys that are up from down list 
 		{
-			auto Find = std::find(KeysDownToSend.begin(), KeysDownToSend.end(), KeysUpToSend.at(i));
-			if (Find != KeysDownToSend.end())
+			auto Find = std::find(KeysDown.begin(), KeysDown.end(), KeysUpToSend.at(i));
+			if (Find != KeysDown.end())
 			{
-				KeysDownToSend.erase(Find);
+				KeysDown.erase(Find);
 			}
 		}
+
 		KeysUpToSend.clear();
 	}
 
-	KeysDownToSend.clear();
+	KeysDown.clear();
 	KeysUpToSend.clear();
 	PostThreadMessage(HomeThread, WM_USER_ENDPLS, 0, 0);
 }
