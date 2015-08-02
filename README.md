@@ -1,6 +1,6 @@
 # DotNetK70Controller
 ## Intro
-Lua Control for the Corsair K70 RGB allows users to control the keyboards LEDs using the power of Lua.
+Lua Control for the Corsair K70 RGB.
 
 Make sure that the Corsair Utility Engine has the keyboard set to disable device lighting or the two sources will conflict and cause insane flickering.
 
