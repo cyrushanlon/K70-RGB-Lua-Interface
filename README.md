@@ -1,10 +1,10 @@
 # DotNetK70Controller
 ## Intro
-The code will be messy while I work on it!
-
-LED Controller for the Corsair K70 RGB that aims to allow users to create lua scripts that control the keyboard.
+Lua Control for the Corsair K70 RGB.
 
 Make sure that the Corsair Utility Engine has the keyboard set to disable device lighting or the two sources will conflict and cause insane flickering.
+
+Place Lua scripts into a "lua" folder next to the exe
 
 ### C++ functions from within lua
 There are example scripts in the lua folder.
