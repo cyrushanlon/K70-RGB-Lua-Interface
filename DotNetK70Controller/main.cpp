@@ -9,11 +9,9 @@
 
 //#include "KeyCoordinates.h"
 #include "dirent.h"
+
 #include "Device.h"
 #include "LuaSetup.h"
-
-//creates custom user message
-#define WM_USER_ENDPLS (WM_USER + 100)
 
 std::string GetTime()
 {
@@ -28,6 +26,50 @@ std::string GetTime()
 
 	return oss.str();
 }
+
+bool FileExist(const char *fileName)
+{
+	std::ifstream infile(fileName);
+	return infile.good();
+}
+
+std::vector<int> KeysDown;
+std::vector<int> KeysDownSent;
+
+std::vector<int> KeysUpToSend;
+
+/////////////////////// USES WINDOWS ///////////
+
+//creates custom user message
+#define WM_USER_ENDPLS (WM_USER + 100)
+//Gets the keys quite low down but needs to be lower
+LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	BOOL fEatKeystroke = FALSE;
+
+	if (nCode == HC_ACTION)
+	{
+		PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)lParam;
+		switch (wParam)
+		{
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+			if (std::find(KeysDown.begin(), KeysDown.end(), p->vkCode) == KeysDown.end())
+			{
+				KeysDown.push_back(p->vkCode);
+			}
+			//std::cout << "Down " << p->vkCode << std::endl;
+			break;
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			KeysUpToSend.push_back(p->vkCode);
+			//std::cout << "Up " << p->vkCode << std::endl;
+			break;
+		}
+	}
+	return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
+}
+
 
 void FindFiles()
 {
@@ -51,52 +93,13 @@ void FindFiles()
 	}
 }
 
-bool FileExist(const char *fileName)
-{
-	std::ifstream infile(fileName);
-	return infile.good();
-}
-
-std::vector<int> KeysDown;
-std::vector<int> KeysDownSent;
-
-std::vector<int> KeysUpToSend;
-
-LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-	BOOL fEatKeystroke = FALSE;
-
-	if (nCode == HC_ACTION)
-	{
-		PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)lParam;
-		switch (wParam)
-		{
-		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:	
-			if (std::find(KeysDown.begin(), KeysDown.end(), p->vkCode) == KeysDown.end())
-			{
-				KeysDown.push_back(p->vkCode);
-			}	
-			//std::cout << "Down " << p->vkCode << std::endl;
-			break;
-		case WM_KEYUP:
-		case WM_SYSKEYUP:
-			KeysUpToSend.push_back(p->vkCode);
-			//std::cout << "Up " << p->vkCode << std::endl;
-			break;
-		}		
-	}
-	return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
-}
-
-bool Running = false;
 void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 {
 	//Only want to send changes from the last loop
 	//keysDownSent = KeysDown
 	//Loop through KeysDown to find differences, only send those
 
-	Running = true;
+	bool Running = true;
 	while (Running)
 	{
 		Running = RunMain(L); // run main lua
@@ -126,7 +129,7 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 
 			}
 		}
-		
+
 		if (KeysDown.size() > 100) // temp flush to make sure no overflow
 		{
 			KeysDown.clear();
@@ -134,8 +137,6 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 
 		KeysDownSent.clear();
 		KeysDownSent = KeysDown;
-		
-		
 
 		if (KeysUpToSend.size() > 0) // run key ups
 		{
@@ -161,6 +162,19 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 	KeysUpToSend.clear();
 	PostThreadMessage(HomeThread, WM_USER_ENDPLS, 0, 0);
 }
+
+HHOOK hhkLowLevelKybd;
+void SetKeyboardHook()
+{
+	hhkLowLevelKybd = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
+}
+
+void UnhookKeyboard()
+{
+	UnhookWindowsHookEx(hhkLowLevelKybd); // releases low level hook to keyboard
+}
+
+/////////////////////////////////
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -219,7 +233,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			{
 				std::cout << GetTime() << "Script opening." << std::endl;
 				
-				HHOOK hhkLowLevelKybd = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
+				SetKeyboardHook();
 
 				std::cout << GetTime() << "Keyboard hook set." << std::endl;
 
@@ -246,7 +260,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				LuaThread.join();
 				std::cout << GetTime() << "Lua thread closed." << std::endl;
 
-				UnhookWindowsHookEx(hhkLowLevelKybd); // releases low level hook to keyboard
+				UnhookKeyboard();
 
 				std::cout << GetTime() << "Keyboard hook released" << std::endl;
 

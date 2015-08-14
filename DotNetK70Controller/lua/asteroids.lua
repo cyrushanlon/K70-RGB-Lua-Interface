@@ -112,16 +112,12 @@ function keypress( key )
 		AutoPilot = false
 		moveForward()
 	--Control key to turn on autopilot
-	elseif key == 163 then
+	elseif key == 17 then
 		AutoPilot = true
 	--Space to restart
 	elseif Lost and key == 32 then
 		newGame()
 	end
-end
-
-function keyrelease(key)
-
 end
 
 function main()	
