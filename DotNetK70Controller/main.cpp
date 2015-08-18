@@ -33,8 +33,8 @@ bool FileExist(const char *fileName)
 	return infile.good();
 }
 
-std::vector<int> KeysDown;
-std::vector<int> KeysDownSent;
+std::vector<int> KeysDown; // Keys that are currently down
+std::vector<int> KeysDownSent; // Keys that were just pressed and need to be send
 
 std::vector<int> KeysUpToSend;
 
@@ -100,11 +100,23 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 	//Loop through KeysDown to find differences, only send those
 
 	bool Running = true;
+
+	DWORD CurTick;
+	DWORD NewTick;
+	bool First = true;
+
 	while (Running)
 	{
+		if (First)
+		{
+			NewTick = GetTickCount64();
+			CurTick = NewTick;
+			First = false;
+		}
+
 		Running = RunMain(L); // run main lua
 
-		if (KeysDown.size() > 0)
+		if (KeysDown.size() > 0) // if there are any pressed keys
 		{
 			//Escape command to leave script
 			if ((std::find(KeysDown.begin(), KeysDown.end(), VK_LCONTROL) != KeysDown.end()) &&
@@ -116,17 +128,16 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 			}
 			else
 			{
-				//Find differences between KeysDown and KeysSent
+				//Find keys that are down but not yet sent
 				for (int i = 0; i < KeysDown.size(); i++)
 				{
-					//if current keysdown is in KeysDownSent
+					//if current key hasnt yet been sent
 					if (std::find(KeysDownSent.begin(), KeysDownSent.end(), KeysDown[i]) == KeysDownSent.end())
 					{
 						//Send the key
 						RunKeyPress(L, KeysDown[i]);
 					}
 				}
-
 			}
 		}
 
@@ -146,7 +157,8 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 			}
 		}
 
-		for (int i = 0; i < KeysUpToSend.size(); i++) // removes keys that are up from down list 
+		// removes keys that are up from down list 
+		for (int i = 0; i < KeysUpToSend.size(); i++) 
 		{
 			auto Find = std::find(KeysDown.begin(), KeysDown.end(), KeysUpToSend.at(i));
 			if (Find != KeysDown.end())
@@ -156,6 +168,10 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 		}
 
 		KeysUpToSend.clear();
+
+		NewTick = GetTickCount64();
+		std::cout << NewTick - CurTick << std::endl;
+		CurTick = NewTick;
 	}
 
 	KeysDown.clear();
