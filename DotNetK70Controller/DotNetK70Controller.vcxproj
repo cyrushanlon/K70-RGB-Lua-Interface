@@ -79,6 +79,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Config.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="KeyCoordinates.h" />
     <ClInclude Include="LuaSetup.h" />

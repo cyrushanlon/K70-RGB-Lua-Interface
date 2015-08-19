@@ -13,6 +13,7 @@
 
 #include "Device.h"
 #include "LuaSetup.h"
+#include "Config.h"
 
 std::string GetTime()
 {
@@ -95,25 +96,11 @@ void FindFiles()
 
 void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 {
-	//Only want to send changes from the last loop
-	//keysDownSent = KeysDown
-	//Loop through KeysDown to find differences, only send those
-
 	bool Running = true;
 
-	DWORD CurTick;
-	DWORD NewTick;
-	bool First = true;
-
+	//Main script loop
 	while (Running)
 	{
-		if (First)
-		{
-			NewTick = GetTickCount64();
-			CurTick = NewTick;
-			First = false;
-		}
-
 		Running = RunMain(L); // run main lua
 
 		if (KeysDown.size() > 0) // if there are any pressed keys
@@ -143,19 +130,21 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 		}
 
 		// removes keys that are up from keysdown and sends keyup 
-		for (std::set<int>::iterator i = KeysUpToSend.begin(); i != KeysUpToSend.end(); i++)
+		if (KeysUpToSend.size() > 0) // if there are any keys up that were down
 		{
-			int Element = *i;
-			auto Find = std::find(KeysDown.begin(), KeysDown.end(), Element);
-			if (Find != KeysDown.end())
+			for (std::set<int>::iterator i = KeysUpToSend.begin(); i != KeysUpToSend.end(); i++)
 			{
-				RunKeyRelease(L, Element);
-				KeysDown.erase(Find);
+				int Element = *i;
+				auto Find = std::find(KeysDown.begin(), KeysDown.end(), Element);
+				if (Find != KeysDown.end())
+				{
+					RunKeyRelease(L, Element);
+					KeysDown.erase(Find);
+				}
 			}
 		}
 
 		//Cleans stuff up
-
 		if (KeysDown.size() > 100) // temp flush to make sure no overflow
 		{
 			KeysDown.clear();
@@ -164,12 +153,6 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 		KeysDownSent.clear();
 		KeysDownSent = KeysDown;
 		KeysUpToSend.clear();
-
-		//FPS stuff
-
-		//NewTick = GetTickCount64();
-		//std::cout << "Tick Duration: " << NewTick - CurTick << std::endl;
-		//CurTick = NewTick;
 	}
 
 	KeysDown.clear();
@@ -192,6 +175,17 @@ void UnhookKeyboard()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	// Check if keyboard layout is compatible and create config file for default script etc
+	SetupConfig();
+	std::cout << "Config: \n" << std::endl;
+
+	for (auto it = ConfigMap.cbegin(); it != ConfigMap.cend(); ++it)
+	{
+		std::cout << it->first << " : " << it->second << "\n";
+	}
+
+	std::cout << std::endl;
+
 	//Setup lua state for loading scripts
 	lua_State *L = luaL_newstate();
 	LuaSetup(L);

@@ -3,3 +3,9 @@ DotNetK70Controller.sdf
 *.tlog
 DotNetK70Controller/Debug/vc120.idb
 *.ipch
+*.exe
+*.pdb
+*.obj
+DotNetK70Controller/Debug/DotNetK70Controller.log
+DotNetK70Controller/DotNetK70Controller.vcxproj.filters
+*.filters
