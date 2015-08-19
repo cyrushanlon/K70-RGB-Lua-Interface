@@ -51,7 +51,7 @@ static PDH_HQUERY CPUQuery;
 static PDH_HCOUNTER CPUTotal;
 
 
-void CPUInit()
+static void CPUInit()
 {
 	PdhOpenQuery(NULL, NULL, &CPUQuery);
 	PdhAddEnglishCounter(CPUQuery, L"\\Processor(_Total)\\% Processor Time", NULL, &CPUTotal);
@@ -59,7 +59,7 @@ void CPUInit()
 }
 
 
-double GetCPUUsage(){
+static double GetCPUUsage(){
 	PDH_FMT_COUNTERVALUE counterVal;
 
 
@@ -78,7 +78,7 @@ static int LuaGetCPUUsage(lua_State* L)
 
 //C++ can choose when to call the lua function "main"
 //This might be slow ill have to see
-bool RunMain(lua_State* L)
+static bool RunMain(lua_State* L)
 {
 	lua_getglobal(L, "main");
 	if (lua_isfunction(L, lua_gettop(L)))
@@ -94,7 +94,7 @@ bool RunMain(lua_State* L)
 	return false;
 }
 
-bool RunKeyPress(lua_State* L, int Key)
+static bool RunKeyPress(lua_State* L, int Key)
 {
 	if (lua_getglobal(L, "keypress") != 0)
 	{
@@ -110,7 +110,7 @@ bool RunKeyPress(lua_State* L, int Key)
 	return false;
 }
 
-bool RunKeyRelease(lua_State* L, int Key)
+static bool RunKeyRelease(lua_State* L, int Key)
 {
 	if (lua_getglobal(L, "keyrelease") != 0)
 	{
@@ -126,12 +126,12 @@ bool RunKeyRelease(lua_State* L, int Key)
 	return false;
 }
 
-void RemoveFunctions(lua_State* L)
+static void RemoveFunctions(lua_State* L)
 {
 	luaL_dostring(L, "main = nil keypress = nil keyrelease = nil");
 }
 
-void LuaSetup(lua_State* L)
+static void LuaSetup(lua_State* L)
 {
 	luaL_openlibs(L);
 

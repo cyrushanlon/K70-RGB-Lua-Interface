@@ -4,6 +4,7 @@
 #include<list>
 #include<conio.h>
 #include<fstream>
+#include<set>
 
 #include<lua.hpp>
 
@@ -33,10 +34,10 @@ bool FileExist(const char *fileName)
 	return infile.good();
 }
 
-std::vector<int> KeysDown; // Keys that are currently down
-std::vector<int> KeysDownSent; // Keys that were just pressed and need to be send
+std::set<int> KeysDown; // Keys that are currently down
+std::set<int> KeysDownSent; // Keys that were just pressed and need to be send
 
-std::vector<int> KeysUpToSend;
+std::set<int> KeysUpToSend;
 
 /////////////////////// USES WINDOWS ///////////
 
@@ -56,20 +57,19 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		case WM_SYSKEYDOWN:
 			if (std::find(KeysDown.begin(), KeysDown.end(), p->vkCode) == KeysDown.end())
 			{
-				KeysDown.push_back(p->vkCode);
+				KeysDown.insert(p->vkCode);
 			}
 			//std::cout << "Down " << p->vkCode << std::endl;
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			KeysUpToSend.push_back(p->vkCode);
+			KeysUpToSend.insert(p->vkCode);
 			//std::cout << "Up " << p->vkCode << std::endl;
 			break;
 		}
 	}
 	return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
 }
-
 
 void FindFiles()
 {
@@ -126,20 +126,35 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 				Running = false;
 				break; // probs bad
 			}
-			else
+			else // if close script command isnt used
 			{
 				//Find keys that are down but not yet sent
-				for (int i = 0; i < KeysDown.size(); i++)
+				for (std::set<int>::iterator i = KeysDown.begin(); i != KeysDown.end(); i++)
 				{
+					int Element = *i;
 					//if current key hasnt yet been sent
-					if (std::find(KeysDownSent.begin(), KeysDownSent.end(), KeysDown[i]) == KeysDownSent.end())
+					if (std::find(KeysDownSent.begin(), KeysDownSent.end(), Element) == KeysDownSent.end())
 					{
 						//Send the key
-						RunKeyPress(L, KeysDown[i]);
+						RunKeyPress(L, Element);
 					}
 				}
 			}
 		}
+
+		// removes keys that are up from keysdown and sends keyup 
+		for (std::set<int>::iterator i = KeysUpToSend.begin(); i != KeysUpToSend.end(); i++)
+		{
+			int Element = *i;
+			auto Find = std::find(KeysDown.begin(), KeysDown.end(), Element);
+			if (Find != KeysDown.end())
+			{
+				RunKeyRelease(L, Element);
+				KeysDown.erase(Find);
+			}
+		}
+
+		//Cleans stuff up
 
 		if (KeysDown.size() > 100) // temp flush to make sure no overflow
 		{
@@ -148,30 +163,13 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 
 		KeysDownSent.clear();
 		KeysDownSent = KeysDown;
-
-		if (KeysUpToSend.size() > 0) // run key ups
-		{
-			for (int i = 0; i < KeysUpToSend.size(); i++)
-			{
-				RunKeyRelease(L, KeysUpToSend.at(i));
-			}
-		}
-
-		// removes keys that are up from down list 
-		for (int i = 0; i < KeysUpToSend.size(); i++) 
-		{
-			auto Find = std::find(KeysDown.begin(), KeysDown.end(), KeysUpToSend.at(i));
-			if (Find != KeysDown.end())
-			{
-				KeysDown.erase(Find);
-			}
-		}
-
 		KeysUpToSend.clear();
 
-		NewTick = GetTickCount64();
-		std::cout << NewTick - CurTick << std::endl;
-		CurTick = NewTick;
+		//FPS stuff
+
+		//NewTick = GetTickCount64();
+		//std::cout << "Tick Duration: " << NewTick - CurTick << std::endl;
+		//CurTick = NewTick;
 	}
 
 	KeysDown.clear();
