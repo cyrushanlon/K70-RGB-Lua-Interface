@@ -9,3 +9,5 @@ DotNetK70Controller/Debug/vc120.idb
 DotNetK70Controller/Debug/DotNetK70Controller.log
 DotNetK70Controller/DotNetK70Controller.vcxproj.filters
 *.filters
+DotNetK70Controller/config.txt
+*.pch

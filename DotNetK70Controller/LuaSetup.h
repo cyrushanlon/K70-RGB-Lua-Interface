@@ -5,6 +5,10 @@
 
 #include<lua.hpp>
 #include"Device.h"
+#include "WindowsInput.h"
+
+// custom user message for closing lua script
+#define WM_USER_ENDPLS (WM_USER + 100) 
 
 //Made global for now so LuaSetLed etc can access
 Device* Keyboard;
@@ -140,4 +144,146 @@ static void LuaSetup(lua_State* L)
 	lua_register(L, "Update", LuaUpdateKeyboard);
 	lua_register(L, "Sleep", LuaSleep);
 	lua_register(L, "GetCPUUsage", LuaGetCPUUsage);
+}
+
+//C++ side of lua script execution
+void LuaThreadLoop(lua_State *L, DWORD HomeThread)
+{
+	bool Running = true;
+
+	//Main script loop
+	while (Running)
+	{
+		Running = RunMain(L); // run main lua
+
+		if (KeysDown.size() > 0) // if there are any pressed keys
+		{
+			//Escape command to leave script
+			if ((std::find(KeysDown.begin(), KeysDown.end(), VK_LCONTROL) != KeysDown.end()) &&
+				(std::find(KeysDown.begin(), KeysDown.end(), VK_LMENU) != KeysDown.end()) &&
+				(std::find(KeysDown.begin(), KeysDown.end(), VK_END) != KeysDown.end()))
+			{
+				Running = false;
+				break; // probs bad
+			}
+			else // if close script command isnt used
+			{
+				//Find keys that are down but not yet sent
+				for (std::set<int>::iterator i = KeysDown.begin(); i != KeysDown.end(); i++)
+				{
+					int Element = *i;
+					//if current key hasnt yet been sent
+					if (std::find(KeysDownSent.begin(), KeysDownSent.end(), Element) == KeysDownSent.end())
+					{
+						//Send the key
+						RunKeyPress(L, Element);
+					}
+				}
+			}
+		}
+
+		// removes keys that are up from keysdown and sends keyup 
+		if (KeysUpToSend.size() > 0) // if there are any keys up that were down
+		{
+			for (std::set<int>::iterator i = KeysUpToSend.begin(); i != KeysUpToSend.end(); i++)
+			{
+				int Element = *i;
+				auto Find = std::find(KeysDown.begin(), KeysDown.end(), Element);
+				if (Find != KeysDown.end())
+				{
+					RunKeyRelease(L, Element);
+					KeysDown.erase(Find);
+				}
+			}
+		}
+
+		//Cleans stuff up
+		if (KeysDown.size() > 100) // temp flush to make sure no overflow
+		{
+			KeysDown.clear();
+		}
+
+		KeysDownSent.clear();
+		KeysDownSent = KeysDown;
+		KeysUpToSend.clear();
+	}
+
+	KeysDown.clear();
+	KeysUpToSend.clear();
+	PostThreadMessage(HomeThread, WM_USER_ENDPLS, 0, 0);
+}
+
+//Handles windows messages and handles script termination
+
+std::string GetTime() // needs moving somewhere else
+{
+	time_t CurrentTime;
+	struct tm localTime;
+
+	time(&CurrentTime);
+	localtime_s(&localTime, &CurrentTime);
+
+	std::ostringstream oss;
+	oss << "[" << localTime.tm_hour << ":" << localTime.tm_min << ":" << localTime.tm_sec << "] ";
+
+	return oss.str();
+}
+
+bool inline FileExist(const char *fileName)
+{
+	std::ifstream infile(fileName);
+	return infile.good();
+}
+
+void RunScript(lua_State *L, std::string FileName)
+{
+	if (FileExist(FileName.c_str()))
+	{
+		lua_settop(L, 0);
+		RemoveFunctions(L); // defaults any functions to nil
+		if (luaL_dofile(L, FileName.c_str()) != 0) // if there is an error with loading lua file into state
+		{
+			std::cout << lua_tostring(L, -1) << std::endl;
+		}
+		else
+		{
+			SetKeyboardHook();
+
+			std::cout << std::endl << GetTime() << "Keyboard hook set." << std::endl;
+
+			std::thread LuaThread(LuaThreadLoop, L, GetCurrentThreadId());
+
+			std::cout << GetTime() << "Lua thread open." << std::endl;
+			std::cout << GetTime() << "Script running..." << std::endl << std::endl;
+			std::cout << GetTime() << "(LControl + LAlt + End) to end script." << std::endl;
+
+			MSG msg; // message loop to recieve key inputs
+			while (GetMessage(&msg, NULL, 0, 0) > 0)
+			{
+				if (msg.message == WM_USER_ENDPLS)
+				{
+					break;
+				}
+				else
+				{
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+			}
+
+			LuaThread.join();
+			std::cout << std::endl << GetTime() << "Lua thread closed." << std::endl;
+
+			UnhookKeyboard();
+
+			std::cout << GetTime() << "Keyboard hook released" << std::endl;
+
+			std::cout << GetTime() << "Done!" << std::endl << std::endl;
+		}
+	}
+	else
+	{
+		std::cout << std::endl << "File doesnt exist!" << std::endl;
+	}
+
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 #include<fstream>
 #include<map>
 #include <string>
@@ -20,7 +22,7 @@ void SetupConfig()
 		ConfigOut.open("config.txt");
 
 		ConfigOut << "DefaultScript=rainbow;"; // relies on rainbow.lua existing
-		ConfigMap.insert(std::make_pair("DefaultScript", "rainbow"));
+		ConfigMap.insert(std::make_pair("DefaultScript", ""));
 
 		ConfigOut.close();
 	}
@@ -77,7 +79,7 @@ void SetupConfig()
 			}
 
 			//if both property and value are valid
-			if ((Property != "") && (Value != ""))
+			if (Property != "")
 			{
 				ConfigMap.insert(std::make_pair(Property, Value));
 			}
