@@ -1,12 +1,12 @@
 #include "stdafx.h"
 
-#include<ctime>
-#include<list>
-#include<conio.h>
-#include<fstream>
-#include<set>
+#include <ctime>
+#include <list>
+#include <conio.h>
+#include <fstream>
+#include <set>
 
-#include<lua.hpp>
+#include <lua.hpp>
 
 //#include "KeyCoordinates.h"
 #include "dirent.h"

@@ -3,8 +3,8 @@
 
 #include <pdh.h>
 
-#include<lua.hpp>
-#include"Device.h"
+#include <lua.hpp>
+#include "Device.h"
 #include "WindowsInput.h"
 
 // custom user message for closing lua script

@@ -1,7 +1,7 @@
 #pragma once
-#include<map>
-#include<string>
-#include<utility>
+#include <map>
+#include <string>
+#include <utility>
 
 /*std::map<std::string, std::pair<int, int> > KeynumMap =
 {

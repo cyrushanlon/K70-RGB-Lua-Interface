@@ -1,7 +1,7 @@
 #pragma once
 
-#include<fstream>
-#include<map>
+#include <fstream>
+#include <map>
 #include <string>
 
 //Config stores default script only at the moment
