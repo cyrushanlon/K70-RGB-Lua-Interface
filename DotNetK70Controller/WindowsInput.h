@@ -19,12 +19,10 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			{
 				KeysDown.insert(p->vkCode);
 			}
-			//std::cout << "Down " << p->vkCode << std::endl;
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
 			KeysUpToSend.insert(p->vkCode);
-			//std::cout << "Up " << p->vkCode << std::endl;
 			break;
 		}
 	}

@@ -23,6 +23,7 @@ private:
 	HANDLE GetDeviceHandle(unsigned int uiVID, unsigned int uiPID, unsigned int uiMI);
 	bool IsMatchingDevice(wchar_t *pDeviceID, unsigned int uiVID, unsigned int uiPID, unsigned int uiMI);
 
+	bool IsDeviceValid;
 	void SendUSBMsg(char * data_pkt);
 
 	std::thread RunThread;
@@ -35,6 +36,9 @@ public:
 	void UpdateDevice();
 	bool InitKeyboard();
 	void Run();
+
+	HANDLE GetDeviceHandle();
+
 	//bool GetMouse(); //look into mouse later
 	Device();
 	~Device();

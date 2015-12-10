@@ -8,6 +8,7 @@
 #include <functional>
 
 #include "KeyCoordinates.h"
+#include "Helpers.h"
 
 Device::Device()
 {
@@ -40,6 +41,11 @@ Device::~Device()
 	StopRun = true;
 	//RunThread.join();
 	CloseHandle(DeviceHandle); // Make sure we drop the handle
+}
+
+HANDLE Device::GetDeviceHandle()
+{
+	return DeviceHandle;
 }
 
 void Device::UpdateDevice()
@@ -119,11 +125,20 @@ void Device::SendUSBMsg(char * data_pkt)
 		usb_pkt[i] = data_pkt[i - 1];
 	}
 	int c = HidD_SetFeature(DeviceHandle, usb_pkt, 65);
-	if (c != 1)
+	if (c != 1) //Device is lost
 	{
-		std::cout << "Device lost!" << std::endl; // some kind of error should be called here
+		std::cout << GetTime() << "Device lost!" << std::endl; // some kind of error should be called here
+
+		while (!InitKeyboard()) // keep trying until it refinds the keyboard (This is probs bad?)
+		{
+			std::cout << GetTime() << "Looking for keyboard..." << std::endl;
+			Sleep(1000); // So it doesnt spam too fast
+		}
+
+		std::cout << GetTime() << "Keyboard found, Continuing." << std::endl;
+		
 	}
-	Sleep(1);
+	Sleep(1);//No idea why it needs this but without it, it loses the keyboard after 1 loop
 }
 
 int Device::SetLed(int x, int y, int r, int g, int b)

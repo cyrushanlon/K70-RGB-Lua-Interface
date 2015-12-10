@@ -14,7 +14,7 @@ local SleepDuration = 50
 local TicksPerCycle = 20
 
 --Number of full RGB fades that exist on the keyboard at any given time. Can have decimals.
-local NumRGB = 1
+local NumRGB = 2
 
 --Direction of movement
 local Reverse = false

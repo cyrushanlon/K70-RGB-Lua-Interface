@@ -39,7 +39,7 @@ void SetupConfig()
 
 			bool EqualsFound = false;
 
-			int i = 0;
+			size_t i = 0;
 			while (!Done) // parses the current line
 			{	
 				char CurChar = CurLine.at(i);

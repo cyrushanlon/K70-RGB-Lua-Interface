@@ -1,6 +1,5 @@
 #include "stdafx.h"
 
-#include <ctime>
 #include <list>
 #include <conio.h>
 #include <fstream>
@@ -44,8 +43,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	// Check if keyboard layout is compatible and create config file for default script etc
 	SetupConfig();
 
-	std::cout << std::endl;
-
 	//Setup lua state for loading scripts
 	lua_State *L = luaL_newstate();
 	LuaSetup(L);
@@ -63,7 +60,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			if (FileExist(DefaultScriptName.c_str()))
 			{
-				std::cout << std::endl << GetTime() << "Default Script loaded." << std::endl;
+				std::cout << GetTime() << "Default Script loaded." << std::endl;
 				RunScript(L, DefaultScriptName);
 				FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); // windows call I think
 			}
@@ -73,8 +70,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 		}
 
-
-		std::cout << std::endl << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl << std::endl;
+		std::cout << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl << std::endl;
 
 		bool Done = false;
 		while (!Done) // main menu
@@ -83,6 +79,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			std::cout << "> ";
 			std::string In = "";
 			std::cin >> In;
+			std::cout << std::endl;
 
 			if (In != "exit")
 			{

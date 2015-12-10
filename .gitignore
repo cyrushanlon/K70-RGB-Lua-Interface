@@ -19,3 +19,4 @@ DotNetK70Controller/DotNetK70Controller.rc
 *.exe
 *.pdb
 *.obj
+DotNetK70Controller/Debug/DotNetK70Controller.res

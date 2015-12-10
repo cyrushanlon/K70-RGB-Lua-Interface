@@ -6,6 +6,7 @@
 #include <lua.hpp>
 #include "Device.h"
 #include "WindowsInput.h"
+#include "Helpers.h"
 
 // custom user message for closing lua script
 #define WM_USER_ENDPLS (WM_USER + 100) 
@@ -21,16 +22,16 @@ static int LuaSetLed(lua_State *L) // need and x, y, r, g and b integer passed i
 	int n = lua_gettop(L);
 
 	for (int i = 2; i <= n; i++) // these are numbers
-		Args.push_back(lua_tonumber(L, i));
+		Args.push_back((int)floor(lua_tonumber(L, i)));
 
 	if (n > 5) n = 5;
 	if (n == 4) // first is a string
 	{
-		Keyboard->SetLed(lua_tonumber(L, 1), Args.at(0), Args.at(1), Args.at(2));
+		Keyboard->SetLed((int)floor(lua_tonumber(L, 1)), Args.at(0), Args.at(1), Args.at(2));
 	}
 	else
 	{
-		Keyboard->SetLed(lua_tonumber(L, 1), Args.at(0), Args.at(1), Args.at(2), Args.at(3));
+		Keyboard->SetLed((int)floor(lua_tonumber(L, 1)), Args.at(0), Args.at(1), Args.at(2), Args.at(3));
 	}
 	
 	return 1;
@@ -46,14 +47,13 @@ static int LuaUpdateKeyboard(lua_State* L)
 //Lua can set script delays using this
 static int LuaSleep(lua_State* L)
 {
-	Sleep(lua_tonumber(L, 1));
+	Sleep((int)floor(lua_tonumber(L, 1)));
 	return 1;
 }
 
 //Get CPU usage and give it to lua
 static PDH_HQUERY CPUQuery;
 static PDH_HCOUNTER CPUTotal;
-
 
 static void CPUInit()
 {
@@ -210,24 +210,10 @@ void LuaThreadLoop(lua_State *L, DWORD HomeThread)
 
 	KeysDown.clear();
 	KeysUpToSend.clear();
-	PostThreadMessage(HomeThread, WM_USER_ENDPLS, 0, 0);
+	PostThreadMessage(HomeThread, WM_USER_ENDPLS, 0, 0); //Handles windows messages and handles script termination
+
 }
 
-//Handles windows messages and handles script termination
-
-std::string GetTime() // needs moving somewhere else
-{
-	time_t CurrentTime;
-	struct tm localTime;
-
-	time(&CurrentTime);
-	localtime_s(&localTime, &CurrentTime);
-
-	std::ostringstream oss;
-	oss << "[" << localTime.tm_hour << ":" << localTime.tm_min << ":" << localTime.tm_sec << "] ";
-
-	return oss.str();
-}
 
 bool inline FileExist(const char *fileName)
 {
@@ -249,18 +235,18 @@ void RunScript(lua_State *L, std::string FileName)
 		{
 			SetKeyboardHook();
 
-			std::cout << std::endl << GetTime() << "Keyboard hook set." << std::endl;
+			std::cout << GetTime() << "Keyboard hook set." << std::endl;
 
 			std::thread LuaThread(LuaThreadLoop, L, GetCurrentThreadId());
 
 			std::cout << GetTime() << "Lua thread open." << std::endl;
 			std::cout << GetTime() << "Script running..." << std::endl << std::endl;
-			std::cout << GetTime() << "(LControl + LAlt + End) to end script." << std::endl;
+			std::cout << GetTime() << "(LControl + LAlt + End) to end script." << std::endl << std::endl;
 
 			MSG msg; // message loop to recieve key inputs
 			while (GetMessage(&msg, NULL, 0, 0) > 0)
 			{
-				if (msg.message == WM_USER_ENDPLS)
+				if (msg.message == WM_USER_ENDPLS) // catches the message from (LControl + LAlt + End)
 				{
 					break;
 				}
@@ -272,9 +258,9 @@ void RunScript(lua_State *L, std::string FileName)
 			}
 
 			LuaThread.join();
-			std::cout << std::endl << GetTime() << "Lua thread closed." << std::endl;
+			std::cout << GetTime() << "Lua thread closed." << std::endl;
 
-			UnhookKeyboard();
+			UnhookKeyboard(); // so other stuff can use it and so we dont keep a constant hold of it
 
 			std::cout << GetTime() << "Keyboard hook released" << std::endl;
 
@@ -283,7 +269,7 @@ void RunScript(lua_State *L, std::string FileName)
 	}
 	else
 	{
-		std::cout << std::endl << "File doesnt exist!" << std::endl;
+		std::cout << "File doesnt exist!" << std::endl << std::endl;;
 	}
 
 }
