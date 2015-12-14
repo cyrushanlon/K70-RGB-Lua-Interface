@@ -1,27 +1,35 @@
-# DotNetK70Controller
+# K70 RGB Lua Interface
 ## Intro
-Lua Control for the Corsair K70 RGB.
+Lua interface for controlling the K70 RGB.
 
-Make sure that the Corsair Utility Engine has the keyboard set to disable device lighting or the two sources will conflict and cause insane flickering.
+Make sure that the Corsair Utility Engine is either off or has the lighting disabled or the two will conflict.
 
 Place Lua scripts into a "lua" folder next to the exe
+There are a few example scripts in the lua folder.
 
-### C++ functions from within lua
-There are example scripts in the lua folder.
+### C++ functions from Lua
 
-Required for looping in lua
+Required for looping the lua script.
+Without the Sleep it runs as fast as it can. Using sleep you can limit it.
 ```
-function main() end
+function main()
+  Update()
+	Sleep(25)
+end
 ```
 
 Parameter is a key code sent from C++, the keycodes can be found here:
 
 https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
 
-Please note that the values received in lua are decimal integers not hexidecimal.
 ```
-function keypress(key) end
-function keyrelease(key) end
+function keypress(key) 
+
+end
+
+function keyrelease(key) 
+
+end
 ```
 
 Used to set a specified key to a specified colour.
@@ -47,8 +55,8 @@ GetCPUUsage()
 ```
 
 ## Requirements
-The only external requirement to compile this application for Windows in VS2013 is lua 5.3.
-Linux and OSX versions may be coming soon.
+Lua 5.3 is built in, there should be no external requirements when building in VS2013.
+Linux version may be coming soon.
 
 ## Credit
 
