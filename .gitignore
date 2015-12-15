@@ -8,7 +8,6 @@ DotNetK70Controller/config.txt
 
 Debug/config.txt
 DotNetK70Controller/DotNetK70Controller.vcxproj.filters
-DotNetK70Controller/DotNetK70Controller.rc
 *.filters
 *.pch
 *.vcxproj

@@ -3,14 +3,16 @@
 #include <thread>
 
 #include <lua.hpp>
+#include "KeyboardLayout.h"
 
 class Device
 {
 private:
 	HANDLE DeviceHandle;
+	KeyboardLayout Layout;
 
-	std::vector<unsigned char> KeyVec;
-	std::vector<float> SizeVec;
+	//std::vector<unsigned char> KeyVec;
+	//std::vector<float> SizeVec;
 
 	unsigned char led_matrix[7][92];
 
@@ -31,8 +33,8 @@ private:
 	void RunFunction();
 
 public:
-	int SetLed(int x, int y, int r, int g, int b);
-	int SetLed(int n, int r, int g, int b);
+	bool SetLed(int x, int y, int r, int g, int b);
+	bool SetLed(int n, int r, int g, int b);
 	void UpdateDevice();
 	bool InitKeyboard();
 	void Run();

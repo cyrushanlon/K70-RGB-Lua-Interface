@@ -14,26 +14,6 @@ Device::Device()
 {
 	StopRun = false;
 	// just assigns the UK layout for now
-	
-	KeyVec = {
-		137, 8, 20, 255,
-		0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 6, 18, 30, 42, 32, 44, 56, 68, 255,
-		1, 13, 25, 37, 49, 61, 73, 85, 97, 109, 121, 133, 7, 31, 54, 66, 78, 80, 92, 104, 116, 255,
-		2, 14, 26, 38, 50, 62, 74, 86, 98, 110, 122, 134, 90, 102, 43, 55, 67, 9, 21, 33, 128, 255,
-		3, 15, 27, 39, 51, 63, 75, 87, 99, 111, 123, 135, 114, 126, 57, 69, 81, 128, 255,
-		4, 16, 28, 40, 52, 64, 76, 88, 100, 112, 124, 136, 79, 103, 93, 105, 117, 140, 255,
-		5, 17, 29, 53, 89, 101, 113, 91, 115, 127, 139, 129, 141, 140, 255,
-	};
-
-	SizeVec = {
-		-15.5, 1, 1, -2.5, 1, -2, 0,
-		1, -.5, 1, 1, 1, 1, -.75, 1, 1, 1, 1, -.75, 1, 1, 1, 1, -.5, 1, 1, 1, -.5, 1, 1, 1, 1, 0,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, -.5, 1, 1, 1, -.5, 1, 1, 1, 1, 0,
-		1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, -.5, 1, 1, 1, -.5, 1, 1, 1, 1, 0,
-		1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.25, -4, 1, 1, 1, 1, 0,
-		1.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, -1.5, 1, -1.5, 1, 1, 1, 1, 0,
-		1.5, 1, 1.25, 6.5, 1.25, 1, 1, 1.5, -.5, 1, 1, 1, -.5, 2, 1, 1, 0,
-	};
 }
 
 Device::~Device()
@@ -141,7 +121,7 @@ void Device::SendUSBMsg(char * data_pkt)
 	Sleep(1);//No idea why it needs this but without it, it loses the keyboard after 1 loop
 }
 
-int Device::SetLed(int x, int y, int r, int g, int b)
+bool Device::SetLed(int x, int y, int r, int g, int b)
 {
 	if (x < 0) x = 0;
 	else if (x > 91) x = 91;
@@ -170,7 +150,7 @@ int Device::SetLed(int x, int y, int r, int g, int b)
 	return true;
 }
 
-int Device::SetLed(int Key, int r, int g, int b)
+bool Device::SetLed(int Key, int r, int g, int b)
 {
 	std::pair<int, int> CurPair;
 	if (KeynumMap.count(Key) > 0) // checks if its a valid key
@@ -213,7 +193,7 @@ bool Device::InitKeyboard()
 		{
 			if (size == 0) // next key
 			{
-				float sizef = SizeVec.at(SizePosition++);
+				float sizef = Layout.SizeVec.at(SizePosition++);
 				if (sizef < 0) // if its a gap
 				{
 					size = -sizef * 4;
@@ -221,7 +201,7 @@ bool Device::InitKeyboard()
 				}
 				else // if its a key
 				{
-					key = KeyVec.at(KeyPosition++);
+					key = Layout.KeyVec.at(KeyPosition++);
 					size = sizef * 4;
 				}
 			}
@@ -230,7 +210,7 @@ bool Device::InitKeyboard()
 			size--; // moves along the row
 		}
 
-		if (KeyVec.at(KeyPosition++) != 255 || SizeVec.at(SizePosition++) != 0) // if the row isnt terminated with a size of 0 or the key val 255
+		if (Layout.KeyVec.at(KeyPosition++) != 255 || Layout.SizeVec.at(SizePosition++) != 0) // if the row isnt terminated with a size of 0 or the key val 255
 		{
 			return false;
 		}

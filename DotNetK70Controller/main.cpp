@@ -70,15 +70,17 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 		}
 
-		std::cout << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl << std::endl;
-
 		bool Done = false;
 		while (!Done) // main menu
 		{
+			std::cout << "Type exit to exit." << std::endl << "Type the name of a valid script file excluding '.lua'." << std::endl << std::endl;
+
 			FindFiles();
+
 			std::cout << "> ";
 			std::string In = "";
 			std::cin >> In;
+
 			std::cout << std::endl;
 
 			if (In != "exit")
