@@ -20,13 +20,12 @@ private:
 	char grn_val[144];
 	char blu_val[144];
 
-	char data_pkt[5][64];
+	unsigned char data_pkt[5][64];
 	
 	HANDLE GetDeviceHandle(unsigned int uiVID, unsigned int uiPID, unsigned int uiMI);
 	bool IsMatchingDevice(wchar_t *pDeviceID, unsigned int uiVID, unsigned int uiPID, unsigned int uiMI);
 
-	bool IsDeviceValid;
-	void SendUSBMsg(char * data_pkt);
+	void SendUSBMsg(unsigned char * data_pkt);
 
 	std::thread RunThread;
 	bool StopRun;

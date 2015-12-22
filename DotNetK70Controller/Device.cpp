@@ -1,7 +1,10 @@
 #include "stdafx.h"
 #include "Device.h"
 
-#include <hidsdi.h>
+extern "C"
+{
+	#include <hidsdi.h>
+}
 
 #include <cfgmgr32.h>
 #include <Setupapi.h>
@@ -96,7 +99,7 @@ void Device::UpdateDevice()
 
 }
 
-void Device::SendUSBMsg(char * data_pkt)
+void Device::SendUSBMsg(unsigned char * data_pkt)
 {
 	char usb_pkt[65];
 	usb_pkt[0] = 1;
@@ -109,7 +112,7 @@ void Device::SendUSBMsg(char * data_pkt)
 	{
 		std::cout << GetTime() << "Device lost!" << std::endl; // some kind of error should be called here
 
-		while (!InitKeyboard()) // keep trying until it refinds the keyboard (This is probs bad?)
+		while (!InitKeyboard()) // keep trying until it refinds the keyboard
 		{
 			std::cout << GetTime() << "Looking for keyboard..." << std::endl;
 			Sleep(1000); // So it doesnt spam too fast
@@ -164,7 +167,7 @@ bool Device::SetLed(int Key, int r, int g, int b)
 
 	int x = CurPair.first;
 	int y = CurPair.second;
-	SetLed(x, y, r, g, b);
+	return SetLed(x, y, r, g, b);
 }
 
 bool Device::InitKeyboard()
@@ -196,13 +199,13 @@ bool Device::InitKeyboard()
 				float sizef = Layout.SizeVec.at(SizePosition++);
 				if (sizef < 0) // if its a gap
 				{
-					size = -sizef * 4;
+					size = (int)(-sizef * 4);
 					key = 255;
 				}
 				else // if its a key
 				{
 					key = Layout.KeyVec.at(KeyPosition++);
-					size = sizef * 4;
+					size = (int)(sizef * 4);
 				}
 			}
 
@@ -260,7 +263,7 @@ HANDLE Device::GetDeviceHandle(unsigned int uiVID, unsigned int uiPID, unsigned 
 			delete pData;
 			break;
 		}
-
+		
 		HANDLE hDevice = CreateFile(pData->DevicePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
 		if (hDevice == INVALID_HANDLE_VALUE)
 		{
